@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -10,16 +11,17 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
+    public Text BestScoreText;
     public Text ScoreText;
+    public Text PlayerText;
     public GameObject GameOverText;
+
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
-    // Start is called before the first frame update
     void Start()
     {
         const float step = 0.6f;
@@ -36,6 +38,14 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        UpdateBestScoreText();
+        UpdatePlayerNameText();
+    }
+
+    private void UpdateBestScoreText()
+    {
+        BestScoreText.text = $"Best Score | {ScoreboardManager.Instance.highScoreHolder} : {ScoreboardManager.Instance.highScore}";
     }
 
     private void Update()
@@ -66,11 +76,29 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        updateHighScore();
+    }
+
+    void updateHighScore()
+    {
+        int currentHighScore = ScoreboardManager.Instance.highScore;
+        if (m_Points > currentHighScore)
+        {
+            ScoreboardManager.Instance.highScoreHolder = ScoreboardManager.Instance.playerName;
+            ScoreboardManager.Instance.highScore = m_Points;
+            UpdateBestScoreText();
+        }
+    }
+
+    void UpdatePlayerNameText()
+    {
+        PlayerText.text = $"Playing as {ScoreboardManager.Instance.playerName}";
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        ScoreboardManager.Instance.SaveHighScore();
     }
 }
